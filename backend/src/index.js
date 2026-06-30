@@ -1,5 +1,12 @@
 import dotenv from "dotenv";
 import app from "./app.js";
+import bookingRoutes from "./routes/booking.routes.js";
+
+
+app.use(
+"/api/bookings",
+bookingRoutes
+);
 
 dotenv.config();
 

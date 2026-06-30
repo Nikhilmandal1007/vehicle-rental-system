@@ -2,19 +2,23 @@ import {
     createVehicle,
     getMyVehicles,
     updateVehicle,
-    deleteVehicle
+    deleteVehicle,
+    getVehiclesService,
+    getNearbyVehiclesService
+} from "../services/vehicle.service.js";
+
+import {
+    getVehicleByIdService
 }
 from "../services/vehicle.service.js";
 
 
-
+// Add Vehicle
 export const addVehicle = async(req,res)=>{
-
 
     try{
 
-
-        const data={
+        const data = {
 
             hostId:req.user.id,
 
@@ -23,9 +27,7 @@ export const addVehicle = async(req,res)=>{
         };
 
 
-        const vehicle =
-        await createVehicle(data);
-
+        const vehicle = await createVehicle(data);
 
 
         res.status(201).json({
@@ -39,12 +41,9 @@ export const addVehicle = async(req,res)=>{
         });
 
 
-
     }catch(error){
 
-
         console.log(error);
-
 
         res.status(500).json({
 
@@ -58,18 +57,17 @@ export const addVehicle = async(req,res)=>{
 
 };
 
+
+
+// Get Host Vehicles
 export const myVehicles = async(req,res)=>{
 
-
     try{
-
 
         const hostId = req.user.id;
 
 
-        const vehicles =
-        await getMyVehicles(hostId);
-
+        const vehicles = await getMyVehicles(hostId);
 
 
         res.status(200).json({
@@ -81,13 +79,9 @@ export const myVehicles = async(req,res)=>{
         });
 
 
-
-    }
-    catch(error){
-
+    }catch(error){
 
         console.log(error);
-
 
         res.status(500).json({
 
@@ -97,16 +91,17 @@ export const myVehicles = async(req,res)=>{
 
         });
 
-
     }
 
-
 };
+
+
+
+
+// Update Vehicle
 export const updateVehicleController = async(req,res)=>{
 
-
     try{
-
 
         const vehicleId = req.params.id;
 
@@ -145,13 +140,9 @@ export const updateVehicleController = async(req,res)=>{
         });
 
 
-
-    }
-    catch(error){
-
+    }catch(error){
 
         console.log(error);
-
 
         res.status(500).json({
 
@@ -163,17 +154,19 @@ export const updateVehicleController = async(req,res)=>{
 
     }
 
-
 };
-export const deleteVehicleController = async(req,res)=>{
 
+
+
+
+// Delete Vehicle
+export const deleteVehicleController = async(req,res)=>{
 
     try{
 
+        const vehicleId = req.params.id;
 
-        const vehicleId=req.params.id;
-
-        const hostId=req.user.id;
+        const hostId = req.user.id;
 
 
         const deletedVehicle =
@@ -205,9 +198,99 @@ export const deleteVehicleController = async(req,res)=>{
         });
 
 
+    }catch(error){
+
+        console.log(error);
+
+        res.status(500).json({
+
+            success:false,
+
+            message:error.message
+
+        });
 
     }
-    catch(error){
+
+};
+
+
+
+
+// Get All Vehicles
+export const getVehicles = async(req,res)=>{
+
+    try{
+
+        const vehicles =
+        await getVehiclesService();
+
+
+        res.json({
+
+            success:true,
+
+            vehicles
+
+        });
+
+
+    }catch(error){
+
+        console.log(error);
+
+        res.status(500).json({
+
+            success:false,
+
+            message:error.message
+
+        });
+
+    }
+
+};
+
+
+
+
+// Nearby Vehicles using PostGIS
+export const getNearbyVehiclesController = async(req,res)=>{
+
+    try{
+
+
+        const {
+            latitude,
+            longitude,
+            radius
+        } = req.query;
+
+
+
+        const vehicles =
+        await getNearbyVehiclesService(
+            latitude,
+            longitude,
+            radius
+        );
+
+
+
+        res.status(200).json({
+
+            success:true,
+
+            vehicles
+
+        });
+
+
+
+    }catch(error){
+
+
+        console.log(error);
 
 
         res.status(500).json({
@@ -220,5 +303,47 @@ export const deleteVehicleController = async(req,res)=>{
 
     }
 
+};
+export const getVehicleByIdController = async(req,res)=>{
+
+    try{
+
+        const vehicleId=req.params.id;
+
+
+        const vehicle =
+        await getVehicleByIdService(vehicleId);
+
+
+        if(!vehicle){
+
+            return res.status(404).json({
+
+                success:false,
+                message:"Vehicle not found"
+
+            });
+
+        }
+
+
+        res.json({
+
+            success:true,
+            vehicle
+
+        });
+
+
+    }catch(error){
+
+        res.status(500).json({
+
+            success:false,
+            message:error.message
+
+        });
+
+    }
 
 };
