@@ -15,6 +15,19 @@ import {
     getNearbyVehiclesModel
 }
 from "../models/vehicle.model.js";
+import {
+getVehicleAvailabilityModel
+}
+from "../models/vehicle.model.js";
+import {
+    completeExpiredBookingsModel,
+    getCompletedVehicleIdsModel
+}
+from "../models/booking.model.js";
+import {
+    updateVehicleAvailabilityModel
+}
+from "../models/vehicle.model.js";
 
 
 
@@ -80,5 +93,114 @@ export const getNearbyVehiclesService = async(
         longitude,
         radius
     );
+
+};
+export const checkVehicleAvailabilityService = async(vehicleId)=>{
+
+
+    const booking =
+    await getVehicleAvailabilityModel(vehicleId);
+
+
+
+    if(!booking){
+
+        return {
+
+            available:true,
+
+            availableFrom:null
+
+        };
+
+    }
+
+
+
+    const availableDate =
+    new Date(booking.end_date);
+
+
+
+    availableDate.setDate(
+        availableDate.getDate()+1
+    );
+
+
+
+    return {
+
+        available:false,
+
+        availableFrom:
+        availableDate.toISOString().split("T")[0]
+
+    };
+
+
+};
+export const completeExpiredBookingsService = async()=>{
+
+
+    const client = await pool.connect();
+
+
+    try{
+
+
+        await client.query("BEGIN");
+
+
+        const completedBookings =
+        await completeExpiredBookingsModel(client);
+
+
+
+        const vehicles =
+        await getCompletedVehicleIdsModel(client);
+
+
+
+        for(const vehicle of vehicles){
+
+
+            await updateVehicleAvailabilityModel(
+
+                client,
+
+                vehicle.vehicle_id,
+
+                true
+
+            );
+
+
+        }
+
+
+
+        await client.query("COMMIT");
+
+
+        return completedBookings;
+
+
+    }
+    catch(error){
+
+
+        await client.query("ROLLBACK");
+
+        throw error;
+
+
+    }
+    finally{
+
+
+        client.release();
+
+    }
+
 
 };

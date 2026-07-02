@@ -8,7 +8,11 @@ import {
     updateBookingStatusModel,
     getBookingByIdModel,
     checkBookingAvailabilityModel,
-    checkActiveVehicleBookingsModel
+    checkActiveVehicleBookingsModel,
+     completeExpiredBookingsModel,
+    getCompletedVehicleIdsModel,
+    cancelBookingModel,
+    getBookingHistoryModel
 }
 from "../models/booking.model.js";
 
@@ -288,5 +292,275 @@ export const updateBookingStatusService = async(
 
     }
 
+
+};
+// COMPLETE EXPIRED BOOKINGS
+
+export const completeExpiredBookingsService = async()=>{
+
+
+    const client = await pool.connect();
+
+
+    try{
+
+
+        await client.query("BEGIN");
+
+
+        const completedBookings =
+        await completeExpiredBookingsModel(client);
+
+
+
+        const vehicles =
+        await getCompletedVehicleIdsModel(client);
+
+
+
+        for(const vehicle of vehicles){
+
+
+            await updateVehicleAvailabilityModel(
+
+                client,
+
+                vehicle.vehicle_id,
+
+                true
+
+            );
+
+        }
+
+
+
+        await client.query("COMMIT");
+
+
+        return completedBookings;
+
+
+    }
+    catch(error){
+
+
+        await client.query("ROLLBACK");
+
+        throw error;
+
+
+    }
+    finally{
+
+
+        client.release();
+
+    }
+
+
+};
+// ===============================
+// CANCEL BOOKING SERVICE
+// ===============================
+
+export const cancelBookingService = async(
+    bookingId,
+    userId
+)=>{
+
+
+    const client = await pool.connect();
+
+
+    try{
+
+
+        await client.query("BEGIN");
+
+
+        // Get booking details
+
+        const booking =
+        await getBookingByIdModel(
+            client,
+            bookingId
+        );
+
+
+
+        if(!booking){
+
+            throw new Error(
+                "Booking not found"
+            );
+
+        }
+
+
+
+        // Check ownership
+
+        if(booking.user_id !== userId){
+
+
+            throw new Error(
+                "You cannot cancel this booking"
+            );
+
+        }
+
+
+
+        // Check status
+
+        if(
+            booking.status === "COMPLETED" ||
+            booking.status === "CANCELLED"
+        ){
+
+            throw new Error(
+                "Booking cannot be cancelled"
+            );
+
+        }
+
+
+
+
+        // Update booking status
+
+        const cancelledBooking =
+        await cancelBookingModel(
+
+            client,
+
+            bookingId,
+
+            userId
+
+        );
+
+
+
+
+
+        // Check remaining active bookings
+
+        const activeBooking =
+        await checkActiveVehicleBookingsModel(
+
+            client,
+
+            booking.vehicle_id
+
+        );
+
+
+
+        if(!activeBooking){
+
+
+            await updateVehicleAvailabilityModel(
+
+                client,
+
+                booking.vehicle_id,
+
+                true
+
+            );
+
+
+        }
+
+
+
+
+        await client.query("COMMIT");
+
+
+        return cancelledBooking;
+
+
+
+    }
+    catch(error){
+
+
+        await client.query("ROLLBACK");
+
+
+        throw error;
+
+
+    }
+    finally{
+
+
+        client.release();
+
+
+    }
+
+
+};// ===============================
+// BOOKING HISTORY
+// ===============================
+
+export const getBookingHistoryService = async(userId)=>{
+
+    const bookings =
+    await getBookingHistoryModel(userId);
+
+
+    const history = {
+
+        upcoming: [],
+        completed: [],
+        cancelled: [],
+        rejected: []
+
+    };
+
+
+    for(const booking of bookings){
+
+        switch(booking.status){
+
+            case "PENDING":
+            case "APPROVED":
+
+                history.upcoming.push(booking);
+
+                break;
+
+
+            case "COMPLETED":
+
+                history.completed.push(booking);
+
+                break;
+
+
+            case "CANCELLED":
+
+                history.cancelled.push(booking);
+
+                break;
+
+
+            case "REJECTED":
+
+                history.rejected.push(booking);
+
+                break;
+
+        }
+
+    }
+
+
+    return history;
 
 };

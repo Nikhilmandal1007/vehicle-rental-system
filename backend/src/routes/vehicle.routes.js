@@ -24,6 +24,10 @@ import {
 import {
     authorize
 } from "../middleware/role.middleware.js";
+import {
+    checkVehicleAvailabilityController
+} from "../controllers/vehicle.controller.js";
+
 
 
 
@@ -91,6 +95,10 @@ router.get(
 router.get(
 "/:id",
 getVehicleByIdController
+);
+router.get(
+"/:id/availability",
+checkVehicleAvailabilityController
 );
 
 

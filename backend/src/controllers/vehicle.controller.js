@@ -11,6 +11,10 @@ import {
     getVehicleByIdService
 }
 from "../services/vehicle.service.js";
+import {
+checkVehicleAvailabilityService
+}
+from "../services/vehicle.service.js";
 
 
 // Add Vehicle
@@ -345,5 +349,44 @@ export const getVehicleByIdController = async(req,res)=>{
         });
 
     }
+
+};
+export const checkVehicleAvailabilityController = async(req,res)=>{
+
+try{
+
+
+const vehicleId=req.params.id;
+
+
+const result =
+await checkVehicleAvailabilityService(
+vehicleId
+);
+
+
+
+res.status(200).json({
+
+success:true,
+
+availability:result
+
+});
+
+
+}
+catch(error){
+
+res.status(500).json({
+
+success:false,
+
+message:error.message
+
+});
+
+}
+
 
 };

@@ -20,7 +20,22 @@ updateBookingStatusService
 
 }
 from "../services/booking.service.js";
+import {
+completeExpiredBookingsService
+}
+from "../services/booking.service.js";
 
+
+
+import {
+cancelBookingService
+}
+from "../services/booking.service.js";
+
+import {
+    getBookingHistoryService
+}
+from "../services/booking.service.js";
 
 export const createBookingController = async(req,res)=>{
 
@@ -222,5 +237,139 @@ export const updateBookingStatusController = async(req,res)=>{
 
     }
 
+
+};
+
+export const completeExpiredBookingsController = async(req,res)=>{
+
+try{
+
+
+const result =
+await completeExpiredBookingsService();
+
+
+
+res.json({
+
+success:true,
+
+message:"Expired bookings completed",
+
+completedBookings:result
+
+});
+
+
+}
+catch(error){
+
+
+res.status(500).json({
+
+success:false,
+
+message:error.message
+
+});
+
+
+}
+
+};
+// ===============================
+// CANCEL BOOKING CONTROLLER
+// ===============================
+
+export const cancelBookingController = async(req,res)=>{
+
+
+    try{
+
+
+        const bookingId = req.params.id;
+
+
+        const userId = req.user.id;
+
+
+
+        const booking =
+        await cancelBookingService(
+
+            bookingId,
+
+            userId
+
+        );
+
+
+
+        res.status(200).json({
+
+            success:true,
+
+            message:"Booking cancelled successfully",
+
+            booking
+
+        });
+
+
+    }
+    catch(error){
+
+
+        console.log(error);
+
+
+        res.status(500).json({
+
+            success:false,
+
+            message:error.message
+
+        });
+
+
+    }
+
+
+};
+// ===============================
+// BOOKING HISTORY
+// ===============================
+
+export const getBookingHistoryController = async(req,res)=>{
+
+    try{
+
+        const userId = req.user.id;
+
+        const history =
+        await getBookingHistoryService(userId);
+
+        res.status(200).json({
+
+            success:true,
+
+            history
+
+        });
+
+    }
+    catch(error){
+
+        console.log(error);
+
+        res.status(500).json({
+
+            success:false,
+
+            message:error.message
+
+        });
+
+    }
 
 };

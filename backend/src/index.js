@@ -1,7 +1,8 @@
 import dotenv from "dotenv";
 import app from "./app.js";
+import "./jobs/booking.job.js";
 import bookingRoutes from "./routes/booking.routes.js";
-
+import "./cron/booking.cron.js";
 
 app.use(
 "/api/bookings",

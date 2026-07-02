@@ -242,14 +242,15 @@ return result.rows[0];
 export const checkBookingAvailabilityModel = async(
     vehicleId,
     startDate,
-    endDate
+    endDate,
+    excludeBookingId = null
 )=>{
 
 
     const result = await pool.query(
 
 `
-SELECT *
+SELECT id
 
 FROM bookings
 
@@ -257,22 +258,19 @@ WHERE vehicle_id=$1
 
 AND status IN ('PENDING','APPROVED')
 
-AND (
+AND start_date < $3
 
-    start_date <= $3
+AND end_date > $2
 
-    AND
-
-    end_date >= $2
-
-)
+AND ($4::INTEGER IS NULL OR id != $4::INTEGER)
 
 `,
 
 [
     vehicleId,
     startDate,
-    endDate
+    endDate,
+    excludeBookingId
 ]
 
 );
@@ -281,6 +279,8 @@ AND (
 return result.rows.length === 0;
 
 };
+
+
 export const checkActiveVehicleBookingsModel = async(
     client,
     vehicleId
@@ -310,5 +310,136 @@ LIMIT 1
 
 return result.rows.length > 0;
 
+
+};
+// ===============================
+// COMPLETE EXPIRED BOOKINGS
+// ===============================
+
+export const completeExpiredBookingsModel = async(client)=>{
+
+
+    const result = await client.query(
+
+`
+UPDATE bookings
+
+SET status='COMPLETED'
+
+WHERE status='APPROVED'
+
+AND end_date < CURRENT_DATE
+
+RETURNING *
+
+`
+
+);
+
+
+return result.rows;
+
+};
+export const getCompletedVehicleIdsModel = async(
+    client
+)=>{
+
+
+    const result = await client.query(
+
+`
+SELECT DISTINCT vehicle_id
+
+FROM bookings
+
+WHERE status='COMPLETED'
+
+`
+
+);
+
+
+return result.rows;
+
+};
+// ===============================
+// CANCEL BOOKING
+// ===============================
+
+export const cancelBookingModel = async(
+    client,
+    bookingId,
+    userId
+)=>{
+
+
+    const result = await client.query(
+
+`
+UPDATE bookings
+
+SET status='CANCELLED'
+
+WHERE id=$1
+
+AND user_id=$2
+
+AND status IN ('PENDING','APPROVED')
+
+RETURNING *
+
+`
+
+,
+
+[
+    bookingId,
+    userId
+]
+
+);
+
+
+return result.rows[0];
+
+};
+// ===============================
+// BOOKING HISTORY
+// ===============================
+
+export const getBookingHistoryModel = async(userId)=>{
+
+    const result = await pool.query(
+
+`
+SELECT
+
+bookings.*,
+
+vehicles.brand,
+vehicles.model,
+vehicles.vehicle_type,
+vehicles.location,
+vehicles.price_per_km
+
+FROM bookings
+
+JOIN vehicles
+
+ON bookings.vehicle_id = vehicles.id
+
+WHERE bookings.user_id = $1
+
+ORDER BY bookings.created_at DESC
+
+`,
+
+[
+    userId
+]
+
+);
+
+    return result.rows;
 
 };

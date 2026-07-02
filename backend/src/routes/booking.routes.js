@@ -21,7 +21,16 @@ import {
 }
 from "../middleware/role.middleware.js";
 
+import {
+completeExpiredBookingsController
+}
+from "../controllers/booking.controller.js";
 
+import {
+    cancelBookingController,
+    getBookingHistoryController
+}
+from "../controllers/booking.controller.js";
 const router = express.Router();
 
 
@@ -59,6 +68,21 @@ authorize("HOST"),
 
 updateBookingStatusController
 
+);
+router.put(
+"/complete-expired",
+completeExpiredBookingsController
+);
+router.put(
+    "/:id/cancel",
+    authenticate,
+    cancelBookingController
+);
+
+router.get(
+    "/history",
+    authenticate,
+    getBookingHistoryController
 );
 
 export default router;
