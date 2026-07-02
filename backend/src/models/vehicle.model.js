@@ -437,3 +437,33 @@ RETURNING *
 return result.rows[0];
 
 };
+export const getVehicleAvailabilityModel = async(vehicleId)=>{
+
+    const result = await pool.query(
+
+`
+SELECT
+
+end_date
+
+FROM bookings
+
+WHERE vehicle_id=$1
+
+AND status='APPROVED'
+
+ORDER BY end_date DESC
+
+LIMIT 1
+
+`,
+[
+    vehicleId
+]
+
+);
+
+
+return result.rows[0];
+
+};
