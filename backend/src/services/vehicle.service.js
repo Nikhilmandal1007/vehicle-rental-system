@@ -6,6 +6,16 @@ import {
 }
 from "../models/vehicle.model.js";
 
+import {
+    getAllVehicles,
+    getVehicleByIdModel
+} from "../models/vehicle.model.js";
+
+import {
+    getNearbyVehiclesModel
+}
+from "../models/vehicle.model.js";
+
 
 
 export const createVehicle = async(data)=>{
@@ -43,6 +53,32 @@ export const deleteVehicle = async(
     return await deleteVehicleModel(
         vehicleId,
         hostId
+    );
+
+};
+export const getVehiclesService = async()=>{
+
+    const vehicles = await getAllVehicles();
+
+    return vehicles;
+
+};
+export const getVehicleByIdService = async(id)=>{
+
+    return await getVehicleByIdModel(id);
+
+};
+
+export const getNearbyVehiclesService = async(
+    latitude,
+    longitude,
+    radius
+)=>{
+
+    return await getNearbyVehiclesModel(
+        latitude,
+        longitude,
+        radius
     );
 
 };

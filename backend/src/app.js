@@ -41,5 +41,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/admin",adminRoutes);
 
 app.use("/api/vehicles",vehicleRoutes);
+app.get("/test-vehicle",(req,res)=>{
+    res.send("Vehicle route working");
+});
 
 export default app;
