@@ -1,16 +1,8 @@
 import { Routes, Route } from "react-router-dom";
 
-function Home() {
-  return <h1>Home</h1>;
-}
-
-function Login() {
-  return <h1>Login</h1>;
-}
-
-function Register() {
-  return <h1>Register</h1>;
-}
+import Home from "../features/home/pages/Home";
+import Login from "../features/auth/pages/Login";
+import Register from "../features/auth/pages/Register";
 
 export default function AppRoutes() {
   return (

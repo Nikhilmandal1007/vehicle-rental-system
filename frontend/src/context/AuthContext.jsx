@@ -3,7 +3,7 @@ import {
   getToken,
   getUser,
   setToken,
-  saveUser,
+  setUser as saveUser,
   removeToken,
   removeUser,
 } from "../utils/token";
